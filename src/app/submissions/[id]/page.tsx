@@ -102,24 +102,41 @@ export default async function SubmissionPage({ params }: Props) {
                   questions answered ({progress}%)
                 </p>
                 {submission.status === "completed" ? (
-                  <strong className="nhsuk-tag nhsuk-tag--green">
-                    Completed
-                  </strong>
+                  <>
+                    <strong className="nhsuk-tag nhsuk-tag--green nhsuk-u-margin-bottom-3">
+                      Completed
+                    </strong>
+                    <div className="nhsuk-u-margin-top-3">
+                      <Link
+                        href={`/submissions/${id}/summary`}
+                        className="nhsuk-button nhsuk-button--secondary nhsuk-u-margin-bottom-0"
+                      >
+                        View summary
+                      </Link>
+                    </div>
+                  </>
                 ) : (
                   <>
                     <strong className="nhsuk-tag nhsuk-tag--yellow nhsuk-u-margin-bottom-3">
                       In progress
                     </strong>
-                    {answeredCount === TOTAL && (
-                      <div className="nhsuk-u-margin-top-3">
+                    <div className="nhsuk-u-margin-top-3">
+                      {answeredCount === TOTAL ? (
                         <Link
                           href={`/submissions/${id}/summary`}
                           className="nhsuk-button nhsuk-u-margin-bottom-0"
                         >
                           Review and complete
                         </Link>
-                      </div>
-                    )}
+                      ) : (
+                        <Link
+                          href={`/submissions/${id}/summary`}
+                          className="nhsuk-button nhsuk-button--secondary nhsuk-u-margin-bottom-0"
+                        >
+                          View summary
+                        </Link>
+                      )}
+                    </div>
                   </>
                 )}
               </div>
