@@ -1,24 +1,9 @@
 import Link from "next/link";
 import { listSubmissions } from "@/lib/submissionService";
 import { Submission } from "@/types/submission";
-import { SCORED_REQUIREMENTS } from "@/data/safRequirements";
+import SubmissionsTable from "@/components/SubmissionsTable";
 
 export const dynamic = "force-dynamic";
-
-const TOTAL_QUESTIONS = SCORED_REQUIREMENTS.length;
-
-function progressPercent(submission: Submission): number {
-  const answered = SCORED_REQUIREMENTS.filter(
-    (r) => submission.answers[r.id]?.score !== null && submission.answers[r.id]?.score !== undefined
-  ).length;
-  return Math.round((answered / TOTAL_QUESTIONS) * 100);
-}
-
-function StatusTag({ status }: { status: Submission["status"] }) {
-  const colour = status === "completed" ? "nhsuk-tag--green" : "nhsuk-tag--yellow";
-  const label = status === "completed" ? "Completed" : "In progress";
-  return <strong className={`nhsuk-tag ${colour}`}>{label}</strong>;
-}
 
 export default async function HomePage() {
   let submissions: Submission[] = [];
@@ -82,60 +67,7 @@ export default async function HomePage() {
           )}
 
           {!error && submissions.length > 0 && (
-            <table className="nhsuk-table" role="table">
-              <caption className="nhsuk-table__caption nhsuk-u-visually-hidden">
-                Existing SAF assessments
-              </caption>
-              <thead className="nhsuk-table__head">
-                <tr role="row">
-                  <th scope="col" className="nhsuk-table__header">
-                    Project name
-                  </th>
-                  <th scope="col" className="nhsuk-table__header">
-                    Submitted by
-                  </th>
-                  <th scope="col" className="nhsuk-table__header">
-                    Progress
-                  </th>
-                  <th scope="col" className="nhsuk-table__header">
-                    Status
-                  </th>
-                  <th scope="col" className="nhsuk-table__header">
-                    Last updated
-                  </th>
-                  <th scope="col" className="nhsuk-table__header">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="nhsuk-table__body">
-                {submissions.map((sub) => (
-                  <tr key={sub.id} className="nhsuk-table__row" role="row">
-                    <td className="nhsuk-table__cell">
-                      <strong>{sub.projectName}</strong>
-                    </td>
-                    <td className="nhsuk-table__cell">{sub.submittedBy}</td>
-                    <td className="nhsuk-table__cell">
-                      {progressPercent(sub)}%
-                    </td>
-                    <td className="nhsuk-table__cell">
-                      <StatusTag status={sub.status} />
-                    </td>
-                    <td className="nhsuk-table__cell">
-                      {new Date(sub.updatedAt).toLocaleDateString("en-GB")}
-                    </td>
-                    <td className="nhsuk-table__cell">
-                      <Link
-                        href={`/submissions/${sub.id}`}
-                        className="nhsuk-link"
-                      >
-                        {sub.status === "completed" ? "View" : "Continue"}
-                      </Link>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <SubmissionsTable submissions={submissions} />
           )}
         </div>
       </div>
