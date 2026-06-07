@@ -3,6 +3,8 @@ import { listSubmissions } from "@/lib/submissionService";
 import { Submission } from "@/types/submission";
 import { SCORED_REQUIREMENTS } from "@/data/safRequirements";
 
+export const dynamic = "force-dynamic";
+
 const TOTAL_QUESTIONS = SCORED_REQUIREMENTS.length;
 
 function progressPercent(submission: Submission): number {
