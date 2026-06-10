@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Submission } from "@/types/submission";
 import { SCORED_REQUIREMENTS } from "@/data/safRequirements";
 
@@ -34,8 +35,13 @@ interface SubmissionsTableProps {
 }
 
 export default function SubmissionsTable({ submissions }: SubmissionsTableProps) {
+  const router = useRouter();
   const [statusFilter, setStatusFilter] = useState<FilterStatus>("all");
   const [searchTerm, setSearchTerm] = useState("");
+
+  function handleCreateVersion(submissionId: string) {
+    router.push(`/submissions/${submissionId}/new-version`);
+  }
 
   const filteredSubmissions = useMemo(() => {
     return submissions.filter((sub) => {
@@ -146,6 +152,9 @@ export default function SubmissionsTable({ submissions }: SubmissionsTableProps)
                 Project name
               </th>
               <th scope="col" className="nhsuk-table__header">
+                Version
+              </th>
+              <th scope="col" className="nhsuk-table__header">
                 Submitted by
               </th>
               <th scope="col" className="nhsuk-table__header">
@@ -170,6 +179,9 @@ export default function SubmissionsTable({ submissions }: SubmissionsTableProps)
                   <td className="nhsuk-table__cell">
                     <strong>{sub.projectName}</strong>
                   </td>
+                  <td className="nhsuk-table__cell">
+                    v{sub.versionNumber}
+                  </td>
                   <td className="nhsuk-table__cell">{sub.submittedBy}</td>
                   <td className="nhsuk-table__cell">
                     {score.score} / {score.maxScore} ({score.percentage}%)
@@ -181,16 +193,37 @@ export default function SubmissionsTable({ submissions }: SubmissionsTableProps)
                     {new Date(sub.updatedAt).toLocaleDateString("en-GB")}
                   </td>
                   <td className="nhsuk-table__cell">
-                    <Link
-                      href={
-                        sub.status === "completed"
-                          ? `/submissions/${sub.id}/summary`
-                          : `/submissions/${sub.id}`
-                      }
-                      className="nhsuk-link"
-                    >
-                      {sub.status === "completed" ? "View summary" : "Continue"}
-                    </Link>
+                    <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                      <Link
+                        href={
+                          sub.status === "completed"
+                            ? `/submissions/${sub.id}/summary`
+                            : `/submissions/${sub.id}`
+                        }
+                        className="nhsuk-link"
+                      >
+                        {sub.status === "completed" ? "View summary" : "Continue"}
+                      </Link>
+                      {sub.status === "completed" && (
+                        <>
+                          <span>|</span>
+                          <button
+                            onClick={() => handleCreateVersion(sub.id)}
+                            className="nhsuk-link"
+                            style={{
+                              background: "none",
+                              border: "none",
+                              padding: 0,
+                              cursor: "pointer",
+                              textDecoration: "underline",
+                              color: "#005eb8",
+                            }}
+                          >
+                            New version
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               );

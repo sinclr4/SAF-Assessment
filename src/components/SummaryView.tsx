@@ -27,15 +27,22 @@ export default function SummaryView({ submission }: Props) {
   const [completing, setCompleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const byDimension = getRequirementsByDimension(SCORED_REQUIREMENTS);
-  const answeredCount = SCORED_REQUIREMENTS.filter(
+  // Use the snapshot of SAF requirements from the submission
+  // This ensures that even if requirements change in the future, 
+  // we still show the questions that existed when this version was created
+  const requirementsToUse = (submission.safRequirementsSnapshot && submission.safRequirementsSnapshot.length > 0) 
+    ? submission.safRequirementsSnapshot 
+    : SCORED_REQUIREMENTS;
+  
+  const byDimension = getRequirementsByDimension(requirementsToUse);
+  const answeredCount = requirementsToUse.filter(
     (r) => submission.answers[r.id]?.score !== null && submission.answers[r.id]?.score !== undefined
   ).length;
-  const totalScore = SCORED_REQUIREMENTS.reduce(
+  const totalScore = requirementsToUse.reduce(
     (sum, r) => sum + (submission.answers[r.id]?.score ?? 0),
     0
   );
-  const maxScore = SCORED_REQUIREMENTS.length * 5;
+  const maxScore = requirementsToUse.length * 5;
 
   async function handleComplete() {
     setCompleting(true);
@@ -90,7 +97,7 @@ export default function SummaryView({ submission }: Props) {
               Total score: {totalScore} / {maxScore}
             </strong>
             <br />
-            {answeredCount} of {SCORED_REQUIREMENTS.length} questions scored
+            {answeredCount} of {requirementsToUse.length} questions scored
           </p>
         </div>
 

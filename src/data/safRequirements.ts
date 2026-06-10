@@ -5,6 +5,10 @@ export interface SAFRequirement {
   description: string;
 }
 
+// Current version of the SAF requirements
+// Update this when questions are added, removed, or modified
+export const SAF_VERSION = "2024.1";
+
 export const SAF_DIMENSIONS = [
   "Strategic Alignment, Vision and Roadmap",
   "Decision Making & Governance",

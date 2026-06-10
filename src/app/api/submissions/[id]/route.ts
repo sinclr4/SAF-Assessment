@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   getSubmission,
   completeSubmission,
+  deleteSubmission,
 } from "@/lib/submissionService";
 
 interface Params {
@@ -52,6 +53,29 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     console.error("PATCH /api/submissions/[id] error:", error);
     return NextResponse.json(
       { error: "Failed to update submission" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function DELETE(_req: NextRequest, { params }: Params) {
+  try {
+    const { id } = await params;
+    const deleted = await deleteSubmission(id);
+    
+    if (!deleted) {
+      return NextResponse.json(
+        { error: "Submission not found or could not be deleted" },
+        { status: 404 }
+      );
+    }
+    
+    return NextResponse.json({ success: true }, { status: 200 });
+  } catch (error) {
+    console.error("DELETE /api/submissions/[id] error:", error);
+    const message = error instanceof Error ? error.message : "Failed to delete submission";
+    return NextResponse.json(
+      { error: message },
       { status: 500 }
     );
   }

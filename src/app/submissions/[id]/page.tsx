@@ -7,6 +7,7 @@ import {
   getRequirementsByDimension,
 } from "@/data/safRequirements";
 import { Submission } from "@/types/submission";
+import VersionActions from "@/components/VersionActions";
 
 const TOTAL = SCORED_REQUIREMENTS.length;
 
@@ -38,11 +39,18 @@ export default async function SubmissionPage({ params }: Props) {
   const submission = await getSubmission(id);
   if (!submission) notFound();
 
-  const byDimension = getRequirementsByDimension(SCORED_REQUIREMENTS);
-  const answeredCount = SCORED_REQUIREMENTS.filter(
+  // Use the snapshot of SAF requirements from the submission
+  // This ensures that even if requirements change in the future, 
+  // we still show the questions that existed when this version was created
+  const requirementsToUse = (submission.safRequirementsSnapshot && submission.safRequirementsSnapshot.length > 0) 
+    ? submission.safRequirementsSnapshot 
+    : SCORED_REQUIREMENTS;
+  
+  const byDimension = getRequirementsByDimension(requirementsToUse);
+  const answeredCount = requirementsToUse.filter(
     (r) => submission.answers[r.id]?.score !== null && submission.answers[r.id]?.score !== undefined
   ).length;
-  const progress = Math.round((answeredCount / TOTAL) * 100);
+  const progress = Math.round((answeredCount / requirementsToUse.length) * 100);
   const dimensionScores = SAF_DIMENSIONS.map((dimension) => {
     const requirements = byDimension.get(dimension) ?? [];
     const totalScore = requirements.reduce(
@@ -98,7 +106,7 @@ export default async function SubmissionPage({ params }: Props) {
                   Progress
                 </h2>
                 <p className="nhsuk-body">
-                  <strong>{answeredCount}</strong> of <strong>{TOTAL}</strong>{" "}
+                  <strong>{answeredCount}</strong> of <strong>{requirementsToUse.length}</strong>{" "}
                   questions answered ({progress}%)
                 </p>
                 {submission.status === "completed" ? (
@@ -121,7 +129,7 @@ export default async function SubmissionPage({ params }: Props) {
                       In progress
                     </strong>
                     <div className="nhsuk-u-margin-top-3">
-                      {answeredCount === TOTAL ? (
+                      {answeredCount === requirementsToUse.length ? (
                         <Link
                           href={`/submissions/${id}/summary`}
                           className="nhsuk-button nhsuk-u-margin-bottom-0"
@@ -174,6 +182,8 @@ export default async function SubmissionPage({ params }: Props) {
             ))}
           </tbody>
         </table>
+
+        <VersionActions submission={submission} />
 
         <h2 className="nhsuk-heading-l">Assessment questions</h2>
         <p className="nhsuk-body">

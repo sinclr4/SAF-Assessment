@@ -27,14 +27,19 @@ export default function QuestionForm({
 }: Props) {
   const router = useRouter();
 
-  const requirement = SCORED_REQUIREMENTS.find((r) => r.id === requirementId);
-  const currentIndex = SCORED_REQUIREMENTS.findIndex(
+  // Use the snapshot of SAF requirements from the submission
+  const requirementsToUse = (submission.safRequirementsSnapshot && submission.safRequirementsSnapshot.length > 0) 
+    ? submission.safRequirementsSnapshot 
+    : SCORED_REQUIREMENTS;
+  
+  const requirement = requirementsToUse.find((r) => r.id === requirementId);
+  const currentIndex = requirementsToUse.findIndex(
     (r) => r.id === requirementId
   );
   const prevReq: SAFRequirement | undefined =
-    SCORED_REQUIREMENTS[currentIndex - 1];
+    requirementsToUse[currentIndex - 1];
   const nextReq: SAFRequirement | undefined =
-    SCORED_REQUIREMENTS[currentIndex + 1];
+    requirementsToUse[currentIndex + 1];
 
   const existing = submission.answers[requirementId];
 
@@ -59,6 +64,8 @@ export default function QuestionForm({
   if (!requirement) {
     return <p className="nhsuk-body">Requirement not found.</p>;
   }
+  
+  const isCompleted = submission.status === "completed";
 
   function validate() {
     const errs: Record<string, string> = {};
@@ -72,6 +79,10 @@ export default function QuestionForm({
   }
 
   async function saveAnswer(navigateTo?: string) {
+    if (isCompleted) {
+      setErrors({ form: "Cannot edit a completed submission" });
+      return;
+    }
     setSaving(true);
     setSaved(false);
     try {
@@ -162,6 +173,16 @@ export default function QuestionForm({
           {requirement.id}
         </p>
         <p className="nhsuk-body-l">{requirement.description}</p>
+        
+        {isCompleted && (
+          <div className="nhsuk-inset-text nhsuk-u-margin-bottom-4">
+            <span className="nhsuk-u-visually-hidden">Information: </span>
+            <p className="nhsuk-body">
+              This assessment has been completed and cannot be edited. 
+              To make changes, create a new version from the overview page.
+            </p>
+          </div>
+        )}
 
         {/* Error summary */}
         {Object.keys(errors).length > 0 && (
@@ -218,6 +239,7 @@ export default function QuestionForm({
               aria-describedby={errors.evidence ? "evidence-error" : undefined}
               value={evidence}
               onChange={(e) => setEvidence(e.target.value)}
+              disabled={isCompleted}
             />
           </div>
 
@@ -237,6 +259,7 @@ export default function QuestionForm({
               rows={5}
               value={mitigations}
               onChange={(e) => setMitigations(e.target.value)}
+              disabled={isCompleted}
             />
           </div>
 
@@ -278,6 +301,7 @@ export default function QuestionForm({
                       value={String(val)}
                       checked={score === String(val)}
                       onChange={() => setScore(String(val))}
+                      disabled={isCompleted}
                     />
                     <label
                       className="nhsuk-label nhsuk-radios__label"
@@ -305,27 +329,29 @@ export default function QuestionForm({
             </div>
           )}
 
-          <div className="nhsuk-button-group">
-            <button
-              className="nhsuk-button"
-              type="submit"
-              disabled={saving}
-            >
-              {saving
-                ? "Saving…"
-                : nextReq
-                ? "Save and continue"
-                : "Save and review"}
-            </button>
-            <button
-              className="nhsuk-button nhsuk-button--secondary"
-              type="button"
-              disabled={saving}
-              onClick={handleSaveProgress}
-            >
-              Save progress and return to overview
-            </button>
-          </div>
+          {!isCompleted && (
+            <div className="nhsuk-button-group">
+              <button
+                className="nhsuk-button"
+                type="submit"
+                disabled={saving}
+              >
+                {saving
+                  ? "Saving…"
+                  : nextReq
+                  ? "Save and continue"
+                  : "Save and review"}
+              </button>
+              <button
+                className="nhsuk-button nhsuk-button--secondary"
+                type="button"
+                disabled={saving}
+                onClick={handleSaveProgress}
+              >
+                Save progress and return to overview
+              </button>
+            </div>
+          )}
         </form>
       </div>
 
@@ -340,7 +366,7 @@ export default function QuestionForm({
               <strong>{submission.projectName}</strong>
             </p>
             <p className="nhsuk-body-s nhsuk-u-secondary-text-color">
-              Question {currentIndex + 1} of {SCORED_REQUIREMENTS.length}
+              Question {currentIndex + 1} of {requirementsToUse.length}
             </p>
             <a
               href={`/submissions/${submissionId}`}

@@ -10,11 +10,15 @@ interface Props {
 export default async function QuestionPage({ params }: Props) {
   const { id, requirementId } = await params;
 
-  const requirement = SCORED_REQUIREMENTS.find((r) => r.id === requirementId);
-  if (!requirement) notFound();
-
   const submission = await getSubmission(id);
   if (!submission) notFound();
+
+  // Use the snapshot of SAF requirements from the submission
+  const requirementsToUse = (submission.safRequirementsSnapshot && submission.safRequirementsSnapshot.length > 0) 
+    ? submission.safRequirementsSnapshot 
+    : SCORED_REQUIREMENTS;
+  const requirement = requirementsToUse.find((r) => r.id === requirementId);
+  if (!requirement) notFound();
 
   return (
     <QuestionForm
